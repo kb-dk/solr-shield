@@ -59,6 +59,12 @@
       <version>1.7.28</version>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/org.apache.solr/solr-solrj -->
+    <dependency>
+        <groupId>org.apache.solr</groupId>
+        <artifactId>solr-solrj</artifactId>
+        <version>8.4.1</version>
+    </dependency>
 
     <dependency> <!--Libraries should only include logback in scope tests-->
       <groupId>ch.qos.logback</groupId>
@@ -74,11 +80,10 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- https://mvnrepository.com/artifact/org.yaml/snakeyaml -->
     <dependency>
-      <groupId>org.yaml</groupId>
-      <artifactId>snakeyaml</artifactId>
-      <version>1.25</version>
+      <groupId>dk.kb.util</groupId>
+      <artifactId>kb-util</artifactId>
+      <version>1.0.0</version>
     </dependency>
 
   </dependencies>
