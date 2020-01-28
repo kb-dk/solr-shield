@@ -29,41 +29,64 @@ public class Shield {
      * Calculate the cost of the operation and add it to the user's account before returning it.
      * @param endpoints the collections or services to send the request to.
      * @param userID  ID of a user. Can be anything that is stable between requests from the same user.
-     * @param role    the role of the user defines access privileges and allowance.
+     * @param roleIDs the roles for the user defines access privileges and allowance. Most lenient role wins.
      * @param request the request itself.
      * @return the cost of the request.
      */
     public CostResponse calculateAndAddCost(
-            List<String> endpoints, String userID, String role, Collection<Map.Entry<String, String>> request) {
-        final CostResponse cost = peekCost(endpoints, role, request);
+            List<String> endpoints, String userID, List<String> roleIDs, Collection<Map.Entry<String, String>> request) {
+        final CostResponse cost = peekCost(endpoints, roleIDs, request);
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
     /**
      * Calculate the cost of the operation and return it. This ignores allowance and only returns
      * {@link CostResponse.ACTION#stop} if the rules explicitly state that the request cannot be served.
-     * @param endpointID the collections or services to send the request to.
-     * @param roleID     the role of the user defines access privileges and allowance.
-     * @param request    the request itself.
+     * @param endpointIDs the collections or services to send the request to.
+     * @param roleIDs     the roles for the user defines access privileges and allowance. Most lenient role wins.
+     * @param request     the request itself.
      * @return the cost of the request.
      * @throws UnsupportedOperationException if a requested endpoint does not exist.
      */
     public CostResponse peekCost(
-            List<String> endpointID, String roleID, Collection<Map.Entry<String, String>> request) {
-        double cost = 0.0;
-        for (String endpointDesignation: endpointID) {
+            List<String> endpointIDs, List<String> roleIDs, Collection<Map.Entry<String, String>> request) {
+        if (roleIDs.isEmpty()) {
+            return new CostResponse(CostResponse.ACTION.stop, 0.0, "Error: No roleIDs defined");
+        }
+        CostResponse cheapest = new CostResponse(
+                CostResponse.ACTION.stop, Double.MAX_VALUE,
+                "Internal error: Default cheapest cost should always be replaced");
+        for (String roleID: roleIDs) {
+            Role role = roles.get(roleID);
+            if (role == null) {
+                return new CostResponse(CostResponse.ACTION.stop, 0.0, "Unknown role '" + roleID + "'");
+            }
+            cheapest = CostResponse.getCheapestCost(cheapest, peekCost(endpointIDs, role, request));
+        }
+        return cheapest;
+    }
+
+    /**
+     * Calculate the cost of the operation for a specific and return it. This ignores allowance and only returns
+     * {@link CostResponse.ACTION#stop} if the rules explicitly state that the request cannot be served.
+     * @param endpointIDs the collections or services to send the request to.
+     * @param role        a role for the user defines access privileges and allowance. Most lenient role wins.
+     * @param request     the request itself.
+     * @return the cost of the request.
+     * @throws UnsupportedOperationException if a requested endpoint does not exist.
+     */
+    public CostResponse peekCost(
+            List<String> endpointIDs, Role role, Collection<Map.Entry<String, String>> request) {
+
+        CostResponse response = new CostResponse(CostResponse.ACTION.go, 0.0, null);
+        for (String endpointDesignation: endpointIDs) {
             Endpoint endpoint = endpoints.get(endpointDesignation);
             if (endpoint == null) {
                 throw new IllegalArgumentException("The endpoint '" + endpointDesignation + "' does not exist");
             }
-            CostResponse response = endpoint.calculateCost(role, )
+            response = response.add(endpoint.calculateCost(role, request));
         }
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
-
-    public Role getRole(String roleID) {
-        throw new UnsupportedOperationException("Not implemented yet");
-        // TODO: Support multiple roles by selecting the one with highest priority
+        return response;
     }
 
 }
