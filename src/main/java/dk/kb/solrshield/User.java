@@ -15,6 +15,7 @@
 package dk.kb.solrshield;
 
 import java.util.ArrayDeque;
+import java.util.Collection;
 
 /**
  * Memory-persistent representation of a user, holding allowance and accumulated cost.
@@ -55,11 +56,39 @@ public class User {
      * Check that the user's accumulated cost and the user's allowance, as defined by the role, allows for the
      * given new cost. If so, the cost is added and null is returned, else the cost is not added and a description of
      * why the cost was too high is returned.
-     * @param role the Role under which the request is to be made.
-     * @param cost the cost of the operation that the user want to perform.
+     * @param roles the Role under which the request is to be made.
+     * @param cost  the cost of the operation that the user want to perform.
      * @return null if the user is allowed to perform the request, else an explanation as to why not.
      */
-    public synchronized String checkAndAdd(Role role, double cost) {
+    public synchronized String checkAndAdd(Collection<Role> roles, double cost) {
+        if (roles.isEmpty()) {
+            throw new IllegalArgumentException("Error: No roles defined");
+        }
+        String reply = null;
+        // Check the constraints of each Role in the hope of finding one lenient enough to accept the cost
+        for (Role role: roles) {
+            String newReply = check(role, cost);
+            if (newReply == null) { // Success! Clear accumulated complaints and exit the loop
+                reply = null;
+                break;
+            }
+            reply = reply == null ? newReply : reply + "\n" + newReply;
+        }
+        if (reply != null) {
+            return reply;
+        }
+
+        // Cost accepted. Add it to the structures
+        lastUpdated = System.currentTimeMillis();
+        totalCost += cost;
+        totalCalls++;
+        TimeCostEntry timeCost = new TimeCostEntry(cost);
+        secondQueue.add(timeCost);
+        minuteQueue.add(timeCost);
+        return null;
+    }
+
+    private String check(Role role, double cost) {
         if (cost > role.singleCallMaxCost) {
             return String.format("The cost of the single query %.0f exceeds max cost allowance %.0f from role %s",
                                  cost, role.singleCallMaxCost, role.getRoleID());
@@ -71,14 +100,7 @@ public class User {
         if ((answer = checkQueue(minuteQueue, role.perMinuteMaxCost, role.perMinuteMaxCalls, cost)) != null) {
             return answer;
         }
-
-        lastUpdated = System.currentTimeMillis();
-        totalCost += cost;
-        totalCalls++;
-        TimeCostEntry timeCost = new TimeCostEntry(cost);
-        secondQueue.add(timeCost);
-        minuteQueue.add(timeCost);
-        return null;
+        return answer;
     }
 
     /**
@@ -99,6 +121,13 @@ public class User {
                                  queue.getCurrentCalls(), queue.designation, maxCalls);
         }
         return null;
+    }
+
+    /**
+     * Sets {@link #lastUpdated} to now.
+     */
+    public void touch() {
+        lastUpdated = System.currentTimeMillis();
     }
 
     // Note: This class is private as it only overrides the methods used by {@link User}.

@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public class Endpoint {
     private final String id;
-    private List<Argument> arguments;
+    private Map<String, Argument> arguments;
 
     public Endpoint(String id, YAML config) {
         this.id = id;
@@ -35,6 +35,14 @@ public class Endpoint {
     }
 
     public CostResponse calculateCost(Role role, Collection<Map.Entry<String, String>> request) {
+        CostResponse cost = new CostResponse();
+        for (Map.Entry<String, String> entry: request) {
+            Argument argument = arguments.get(entry.getKey());
+            if (argument == null) {
+                return new CostResponse("Error: The request key '" + entry.getKey() + "' is not on the white list");
+            }
+            
+        }
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
