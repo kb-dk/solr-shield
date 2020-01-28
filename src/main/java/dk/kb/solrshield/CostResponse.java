@@ -25,6 +25,38 @@ public class CostResponse implements Comparable<CostResponse> {
     final double cost;
     final String message;
 
+    /**
+     * Empty cost-response with {@link ACTION#go}, cost 0.0 and null as message.
+     */
+    public CostResponse() {
+        action = ACTION.go;
+        cost = 0.0;
+        message = null;
+    }
+    /**
+     * Plain cost-response with {@link ACTION#go} and null as message.
+     * @param cost the cost for this response.
+     */
+    public CostResponse(double cost) {
+        action = ACTION.go;
+        this.cost = cost;
+        message = null;
+    }
+    /**
+     * Response with {@link ACTION#stop} and a message;
+     */
+    public CostResponse(String message) {
+        action = ACTION.stop;
+        this.cost = 0.0;
+        this.message = message;
+    }
+
+    /**
+     * Full custom response.
+     * @param action  the action to take. Can be either go or stop.
+     * @param cost    the cost of the action.
+     * @param message if the action is stop, there should also be a message.
+     */
     public CostResponse(ACTION action, double cost, String message) {
         this.action = action;
         this.cost = cost;

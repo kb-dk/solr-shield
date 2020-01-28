@@ -64,6 +64,7 @@ public class UserPool extends HashMap<String, User> {
             put(userIDStr, user);
         }
         user.cleanUp();
+        user.touch();
         return user;
     }
 
