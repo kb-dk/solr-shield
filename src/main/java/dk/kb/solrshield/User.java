@@ -44,6 +44,14 @@ public class User {
     }
 
     /**
+     * Ensures that old entries in the {@link #secondQueue} and the {@link #minuteQueue} are removed.
+     */
+    public synchronized void cleanUp() {
+        secondQueue.cleanUp();
+        minuteQueue.cleanUp();
+    }
+
+    /**
      * Check that the user's accumulated cost and the user's allowance, as defined by the role, allows for the
      * given new cost. If so, the cost is added and null is returned, else the cost is not added and a description of
      * why the cost was too high is returned.
@@ -81,7 +89,7 @@ public class User {
     }
 
     private String checkQueue(CostQueue queue, double maxCost, int maxCalls, double cost) {
-        queue.removeOld();
+        queue.cleanUp();
         if (queue.currentCost+cost > maxCalls) {
             return String.format("Accumulated cost %.0f plus new cost %.0f exceeds %s allowance of %.0f",
                                  queue.getCurrentCost(), cost, queue.designation, maxCost);
@@ -107,7 +115,7 @@ public class User {
 
         /**
          * Returns the sum of the entry-costs for the elements in the queue in O(1).
-         * Note: Call {@link #removeOld()} to ensure the queue is up to date.
+         * Note: Call {@link #cleanUp()} to ensure the queue is up to date.
          * @return the current sum of entry-costs in the queue.
          */
         public double getCurrentCost() {
@@ -116,7 +124,7 @@ public class User {
 
         /**
          * Returns the number of entries in the queue in O(1). This is an alias for {@link #size()}.
-         * Note: Call {@link #removeOld()} to ensure the queue is up to date.
+         * Note: Call {@link #cleanUp()} to ensure the queue is up to date.
          * @return the current number of entries in the queue.
          */
         public int getCurrentCalls() {
@@ -128,10 +136,10 @@ public class User {
         }
 
         /**
-         * Removed all entries that are older than now-maxAgeMS.
+         * Removes all entries that are older than now-maxAgeMS.
          * @return true if one or more elements were removed.
          */
-        public boolean removeOld() {
+        public boolean cleanUp() {
             final long old = System.currentTimeMillis()-maxAgeMS;
             boolean removedSomething = false;
             while (!isEmpty() && peek().epoch < old) {
