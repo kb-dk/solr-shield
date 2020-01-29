@@ -14,9 +14,35 @@
  */
 package dk.kb.solrshield;
 
-/**
- * Base rule for an {@link Argument}.
- */
-public abstract class Rule {
+import dk.kb.util.YAML;
 
+/**
+ * Base rule for an {@link Argument}. The type of a Rule is the type of a REST argument.
+ */
+public abstract class Rule<T> {
+
+    private final Cost matchCost;
+
+    public Rule(YAML config) {
+        matchCost = new Cost(config);
+    }
+
+    /**
+     * Calculate the cost for the given value. If the value is not matched by the rule, null is returned.
+     * @param value a value of the type accepted by the rule.
+     * @return the cost of the value or null if the value is not matched by the rule.
+     */
+    public Cost calculateCost(T value) {
+        if (matches(value)) {
+            return matchCost;
+        }
+        return null;
+    }
+
+    /**
+     * If this method returns true, the {@link #matchCost} is returned from {@link #calculateCost(Object)};
+     * @param value a value of the type accepted by the rule.
+     * @return true if the value matches the rule.
+     */
+    protected abstract boolean matches(T value);
 }

@@ -17,7 +17,6 @@ package dk.kb.solrshield;
 import dk.kb.util.YAML;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,16 +33,16 @@ public class Endpoint {
         throw new UnsupportedOperationException("Not implemented yet. Parse from " + config);
     }
 
-    public CostResponse calculateCost(Role role, Collection<Map.Entry<String, String>> request) {
-        CostResponse cost = new CostResponse();
+    public Cost calculateCost(Collection<Map.Entry<String, String>> request) {
+        Cost cost = Cost.NEUTRAL;
         for (Map.Entry<String, String> entry: request) {
             Argument argument = arguments.get(entry.getKey());
             if (argument == null) {
-                return new CostResponse("Error: The request key '" + entry.getKey() + "' is not on the white list");
+                return new Cost("Error: The request key '" + entry.getKey() + "' is not on the white list");
             }
-            
+            cost = cost.merge(argument.calculateCost(entry.getValue()));
         }
-        throw new UnsupportedOperationException("Not implemented yet");
+        return cost;
     }
 
 }

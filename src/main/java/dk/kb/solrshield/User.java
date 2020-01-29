@@ -16,6 +16,7 @@ package dk.kb.solrshield;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.Locale;
 
 /**
  * Memory-persistent representation of a user, holding allowance and accumulated cost.
@@ -90,8 +91,9 @@ public class User {
 
     private String check(Role role, double cost) {
         if (cost > role.singleCallMaxCost) {
-            return String.format("The cost of the single query %.0f exceeds max cost allowance %.0f from role %s",
-                                 cost, role.singleCallMaxCost, role.getRoleID());
+            return String.format(
+                    Locale.ENGLISH,"The cost of the single query %.0f exceeds max cost allowance %.0f from role %s",
+                    cost, role.singleCallMaxCost, role.getRoleID());
         }
         String answer;
         if ((answer = checkQueue(secondQueue, role.perSecondMaxCost, role.perSecondMaxCalls, cost)) != null) {
@@ -113,12 +115,14 @@ public class User {
     private String checkQueue(CostQueue queue, double maxCost, int maxCalls, double cost) {
         queue.cleanUp();
         if (queue.currentCost+cost > maxCalls) {
-            return String.format("Accumulated cost %.0f plus new cost %.0f exceeds %s allowance of %.0f",
-                                 queue.getCurrentCost(), cost, queue.designation, maxCost);
+            return String.format(
+                    Locale.ENGLISH, "Accumulated cost %.0f plus new cost %.0f exceeds %s allowance of %.0f",
+                    queue.getCurrentCost(), cost, queue.designation, maxCost);
         }
         if (queue.getCurrentCalls()+1 > maxCalls) {
-            return String.format("Accumulated #calls %d plus 1 new call exceeds %s allowance of %d calls",
-                                 queue.getCurrentCalls(), queue.designation, maxCalls);
+            return String.format(
+                    Locale.ENGLISH, "Accumulated #calls %d plus 1 new call exceeds %s allowance of %d calls",
+                    queue.getCurrentCalls(), queue.designation, maxCalls);
         }
         return null;
     }
