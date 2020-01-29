@@ -35,10 +35,11 @@ Rules can cancel processing fully or they can adjust the cost of the query. If t
 
 Actions are the same for the different types of rules
 
-- action [cancel setValue]
-- baseCostAddition double
-- costMultiplier double
-- cancelMessage string
+- matchAction [cancel setValue]
+- matchAddition double
+- matchMultiplier double
+- matchMessage string
+
 - isDefined bool
 - continue: bool
 - equals value

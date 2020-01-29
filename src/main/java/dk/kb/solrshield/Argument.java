@@ -15,15 +15,36 @@
 package dk.kb.solrshield;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * A collection of {@link Rule}s for an argument (i.e. HTTP GET argument).
  */
-public class Argument {
+public class Argument<T> {
+    // TODO: Fill from YAML
     private final String key;
-    private List<Rule> rules;
+    private Cost baseCost = Cost.NEUTRAL;
+    private List<Rule<T>> rules;
+
+    private Function<String, T> valueParser;
 
     public Argument(String key) {
         this.key = key;
+    }
+
+    public Cost calculateCost(String value) {
+        final T typedValue = valueParser.apply(value);
+        if (typedValue == null) {
+            return new Cost(String.format(Locale.ROOT, "Error: Unable to parse value '%s' for key '%s'",
+                                          value, key));
+        }
+        // Iterate the rules and return the first that returns non-null for calculateCost
+        return rules.stream().
+                map(rule -> rule.calculateCost(typedValue)).
+                filter(Objects::nonNull).
+                findFirst().
+                orElse(baseCost);
     }
 }
