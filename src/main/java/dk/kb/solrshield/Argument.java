@@ -14,6 +14,8 @@
  */
 package dk.kb.solrshield;
 
+import dk.kb.solrshield.rule.Rule;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;

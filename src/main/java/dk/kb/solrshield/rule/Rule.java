@@ -12,9 +12,13 @@
  *  limitations under the License.
  *
  */
-package dk.kb.solrshield;
+package dk.kb.solrshield.rule;
 
+import dk.kb.solrshield.Argument;
+import dk.kb.solrshield.Cost;
 import dk.kb.util.YAML;
+
+import java.util.Locale;
 
 /**
  * Base rule for an {@link Argument}. The type of a Rule is the type of a REST argument.
@@ -45,4 +49,10 @@ public abstract class Rule<T> {
      * @return true if the value matches the rule.
      */
     protected abstract boolean matches(T value);
+
+    @Override
+    public String toString() {
+        return String.format(Locale.ENGLISH, "Rule(matchCost=%s",
+                             matchCost);
+    }
 }
