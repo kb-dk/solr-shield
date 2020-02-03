@@ -17,6 +17,7 @@ package dk.kb.solrshield;
 import dk.kb.util.YAML;
 import org.noggit.JSONUtil;
 
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collector;
 
@@ -173,5 +174,11 @@ public class Cost implements Comparable<Cost> {
                 (cummulative, cost) -> cummulative[0] = cummulative[0].merge(cost),
                 (cummulative1, cummulative2) -> new Cost[]{cummulative1[0].merge(cummulative2[0])},
                 cost -> cost[0]);
+    }
+
+    @Override
+    public String toString() {
+        return String.format(Locale.ENGLISH, "Cost(action=%s, base=%.1f, multiplier=%.1f, message=%s)",
+                             action, base, multiplier, message == null ? "null" : '"' + message + '"');
     }
 }
